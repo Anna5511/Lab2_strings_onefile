@@ -2,17 +2,13 @@
 #include <iostream>
 #include <cstring>
 
-using namespace std;
-
-// ==================== КОНСТАНТЫ ====================
-const unsigned N = 10;              // максимальное количество исходных строк
+const unsigned N = 50;              // максимальное количество исходных строк
 const unsigned M = 60;              // максимальная длина строки на устройстве вывода
 const unsigned MAX_WORD_LEN = 30;   // максимальная длина исходной строки (по заданию)
 
 const char* INPUT_FILE = "C:\\Users\\Анечка\\Documents\\2\\in.txt";
 const char* OUTPUT_FILE = "C:\\Users\\Анечка\\Documents\\2\\out.txt";
 
-// ==================== СТРУКТУРЫ ====================
 struct str {
     unsigned len;           // текущая длина строки
     char A[M + 1];          // массив символов (+1 для '\0')
@@ -23,10 +19,8 @@ struct text {
     str T[N];               // массив строк
 };
 
-// ==================== ФУНКЦИИ ДЛЯ РАБОТЫ СО СТРОКАМИ ====================
-
 // Ввод одной строки из файла
-void s_inp(ifstream& fin, str& s) {
+void s_inp(std::ifstream& fin, str& s) {
     s.len = 0;
     char c;
     while (fin.get(c)) {
@@ -39,7 +33,7 @@ void s_inp(ifstream& fin, str& s) {
 }
 
 // Вывод одной строки в файл
-void s_out(ofstream& fout, const str& s) {
+void s_out(std::ofstream& fout, const str& s) {
     for (unsigned i = 0; i < s.len; i++) {
         fout << s.A[i];
     }
@@ -117,7 +111,7 @@ void s_format(str& s, unsigned target_len) {
 // ==================== ФУНКЦИИ ДЛЯ РАБОТЫ С ТЕКСТОМ ====================
 
 // Ввод всего текста из файла
-void t_inp(ifstream& fin, text& t) {
+void t_inp(std::ifstream& fin, text& t) {
     t.l = 0;
     while (t.l < N && !fin.eof()) {
         s_inp(fin, t.T[t.l]);
@@ -128,7 +122,7 @@ void t_inp(ifstream& fin, text& t) {
 }
 
 // Вывод всего текста в файл
-void t_out(ofstream& fout, const text& t) {
+void t_out(std::ofstream& fout, const text& t) {
     for (unsigned i = 0; i < t.l; i++) {
         s_out(fout, t.T[i]);
         fout << '\n';
@@ -198,29 +192,25 @@ void t_process(text& t, unsigned target_len) {
     t = result;
 }
 
-// ==================== ФУНКЦИИ ПРОВЕРКИ ФАЙЛОВ ====================
-
-// Проверка существования и содержимого входного файла
 bool in_file_check() {
-    ifstream file(INPUT_FILE);
+    std::ifstream file(INPUT_FILE);
 
-    // Проверка 1: существует ли файл и можно ли его открыть
+    //Существует ли файл?
     if (!file.is_open()) {
-        cout << "Ошибка: Не удалось открыть входной файл!" << endl;
-        cout << "Путь: " << INPUT_FILE << endl;
-        return true;  // true = ошибка
+        std::cout << "Ошибка открытия входного файла";
+        return true;
     }
 
-    // Проверка 2: есть ли в файле хоть что-то (не пустой ли он)
-    file.seekg(0, ios::end);  // перемещаемся в конец файла
-    if (file.tellg() == 0) {   // если позиция = 0, значит файл пустой
-        cout << "Ошибка: Входной файл пуст!" << endl;
+    //Не пустой ли файл?
+    file.seekg(0, std::ios::end);
+    if (file.tellg() == 0) {
+        std::cout << "Ошибка: Входной файл пуст";
         file.close();
         return true;
     }
 
-    // Проверка 3: есть ли в файле хотя бы одна строка с данными
-    file.seekg(0, ios::beg);  // возвращаемся в начало
+    //Есть ли в файле данные?
+    file.seekg(0, std::ios::beg);
     char firstChar;
     bool hasContent = false;
     while (file.get(firstChar)) {
@@ -231,28 +221,24 @@ bool in_file_check() {
     }
 
     if (!hasContent) {
-        cout << "Ошибка: Входной файл не содержит значимых данных (только пробелы и пустые строки)!" << endl;
+        std::cout << "Ошибка: Входной файл не содержит значимых данных (только пробелы и пустые строки)" << std::endl;
         file.close();
         return true;
     }
 
     file.close();
-    cout << "Входной файл успешно открыт и содержит данные" << endl;
-    return false;  // false = всё хорошо
+    return false;
 }
 
 // Проверка выходного файла (можно ли создать/перезаписать)
 bool out_file_check() {
-    // Пытаемся открыть файл для записи (это создаст файл или перезапишет)
-    ofstream file(OUTPUT_FILE);
+    std::ofstream file(OUTPUT_FILE);
     if (!file.is_open()) {
-        cout << "Ошибка: Не удалось создать/открыть выходной файл!" << endl;
-        cout << "Путь: " << OUTPUT_FILE << endl;
+        std::cout << "Ошибка открытия выходного файла";
         return true;
     }
 
     file.close();
-    cout << "Выходной файл готов к записи" << endl;
     return false;
 }
 
@@ -261,90 +247,47 @@ bool out_file_check() {
 int main() {
     setlocale(LC_ALL, "RU");
 
-    cout << "========================================" << endl;
-    cout << "Программа форматирования текста" << endl;
-    cout << "========================================" << endl << endl;
-
-    // Проверяем входной файл
     if (in_file_check()) {
-        cout << "Программа завершена из-за ошибки входного файла" << endl;
-        cout << "Нажмите Enter для выхода...";
-        cin.get();
-        cin.get();
-        return 1;
+        return 0;
     }
-
-    // Проверяем выходной файл
     if (out_file_check()) {
-        cout << "Программа завершена из-за ошибки выходного файла" << endl;
-        cout << "Нажмите Enter для выхода...";
-        cin.get();
-        cin.get();
-        return 1;
+        return 0;
     }
-
-    cout << endl;
 
     // Запрашиваем целевую длину
     unsigned target_len;
-    cout << "Введите желаемую длину строк (не более " << M << "): ";
-    cin >> target_len;
+    std::cout << "Введите желаемую длину строк (не более " << M << "): ";
+    std::cin >> target_len;
 
     if (target_len > M) {
-        cout << "Длина не может превышать " << M << ". Установлено " << M << endl;
+        std::cout << "Длина не может превышать " << M << ". Установлено " << M << std::endl;
         target_len = M;
     }
 
     if (target_len < 1) {
-        cout << "Длина должна быть положительной. Установлено 10" << endl;
+        std::cout << "Длина должна быть положительной. Установлено 10" << std::endl;
         target_len = 10;
     }
 
-    cout << endl;
+    std::cout << std::endl;
 
     // Открываем файлы
-    ifstream fin(INPUT_FILE);
-    ofstream fout(OUTPUT_FILE);
+    std::ifstream fin(INPUT_FILE);
+    std::ofstream fout(OUTPUT_FILE);
 
     text A;
     t_inp(fin, A);
 
-    // Дополнительная проверка: есть ли вообще строки после чтения
-    if (A.l == 0) {
-        cout << "Ошибка: Во входном файле нет ни одной строки с данными!" << endl;
-        fin.close();
-        fout.close();
-        cout << "Нажмите Enter для выхода...";
-        cin.get();
-        cin.get();
-        return 1;
-    }
-
-    cout << "Прочитано строк: " << A.l << endl << endl;
-
-    // Выводим исходный текст
-    fout << "Исходный текст (строки без пробелов):" << endl;
-    t_out(fout, A);
-    fout << endl;
+    std::cout << "Прочитано строк: " << A.l << std::endl << std::endl;
 
     // Обрабатываем
     t_process(A, target_len);
 
     // Выводим результат
-    fout << "Результат (длина строк = " << target_len << "):" << endl;
+    fout << "Результат ( Длина строк = " << target_len << "):" << std::endl;
     t_out(fout, A);
 
     fin.close();
     fout.close();
-
-    cout << "========================================" << endl;
-    cout << "Готово! Результат сохранен в:" << endl;
-    cout << OUTPUT_FILE << endl;
-    cout << "========================================" << endl;
-
-    cout << "\nНажмите Enter для выхода...";
-    cin.get();
-    cin.get();
-
     return 0;
 }
