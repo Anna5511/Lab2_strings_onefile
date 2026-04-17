@@ -1,60 +1,58 @@
 ﻿#include <fstream>
 #include <iostream>
-#include <cstring>
 
-const unsigned N = 50;              // максимальное количество исходных строк
-const unsigned M = 60;              // максимальная длина строки на устройстве вывода
-const unsigned MAX_WORD_LEN = 30;   // максимальная длина исходной строки (по заданию)
+//макс. кол-во строк в файле
+const unsigned N = 50;
+//макс. длина формируемой строки
+const unsigned M = 100;
+//макс. длина строки на входе
+const unsigned max_in = 30;
 
-const char* INPUT_FILE = "C:\\Users\\Анечка\\Documents\\2\\in.txt";
-const char* OUTPUT_FILE = "C:\\Users\\Анечка\\Documents\\2\\out.txt";
+const char* inp_file = "C:\\Users\\Анечка\\Documents\\2\\in.txt";
+const char* out_file = "C:\\Users\\Анечка\\Documents\\2\\out.txt";
 
 struct str {
-    unsigned len;           // текущая длина строки
-    char A[M + 1];          // массив символов (+1 для '\0')
+    unsigned len;
+    char A[M + 1];
 };
 
 struct text {
-    unsigned l;             // количество строк
-    str T[N];               // массив строк
+    unsigned l;
+    str T[N];
 };
 
 // Ввод одной строки из файла
-void s_inp(std::ifstream& fin, str& s) {
+void s_inp(std::ifstream& inp_file, str& s) {
     s.len = 0;
     char c;
-    while (fin.get(c)) {
-        if (c == '\n' || fin.eof()) break;
+    while (inp_file.get(c)) {
+        if (c == '\n' || inp_file.eof()) break;
         s.A[s.len] = c;
         s.len++;
-        if (s.len >= MAX_WORD_LEN) break;
+        if (s.len >= max_in) break;
     }
     s.A[s.len] = '\0';
 }
 
 // Вывод одной строки в файл
-void s_out(std::ofstream& fout, const str& s) {
+void s_out(std::ofstream& out_file, const str& s) {
     for (unsigned i = 0; i < s.len; i++) {
-        fout << s.A[i];
+        out_file << s.A[i];
     }
 }
 
-// Длина строки
-unsigned s_len(const str& s) {
-    return s.len;
-}
-
 // Форматирование строки до заданной длины (равномерное добавление пробелов)
-void s_format(str& s, unsigned target_len) {
-    if (s.len >= target_len) return;
+void s_format(str& s, unsigned new_str_len) {
+    if (s.len >= new_str_len) return;
 
     // Подсчитываем количество слов в строке
-    unsigned wordCount = 0;
+    unsigned word_count = 0;
+    //находимся ли мы внутри слова?
     bool inWord = false;
     for (unsigned i = 0; i < s.len; i++) {
         if (s.A[i] != ' ') {
             if (!inWord) {
-                wordCount++;
+                word_count++;
                 inWord = true;
             }
         }
@@ -63,15 +61,15 @@ void s_format(str& s, unsigned target_len) {
         }
     }
 
-    if (wordCount <= 1) return;  // одно слово - нечего расширять
+    if (word_count <= 1) return;
 
     // Сколько пробелов нужно добавить всего
-    unsigned totalSpacesToAdd = target_len - s.len;
-    unsigned gaps = wordCount - 1;  // количество промежутков между словами
+    unsigned spaces_add = new_str_len - s.len;
+    //количество промежутков между словами
+    unsigned gaps = word_count - 1;
 
-    // Равномерное распределение
-    unsigned baseSpaces = totalSpacesToAdd / gaps;   // каждому промежутку
-    unsigned extraSpaces = totalSpacesToAdd % gaps;  // первые промежутки получают +1
+    unsigned common_spaces = spaces_add / gaps;   // каждому промежутку
+    unsigned extra_spaces = spaces_add % gaps;  // первые промежутки получают +1
 
     // Создаем новую строку
     char newStr[M + 1];
@@ -90,8 +88,8 @@ void s_format(str& s, unsigned target_len) {
             oldPos++;  // пропускаем исходный пробел
 
             // Добавляем пробелы: 1 базовый + дополнительные
-            unsigned spacesToAdd = 1 + baseSpaces;
-            if (gapIndex < extraSpaces) spacesToAdd++;
+            unsigned spacesToAdd = 1 + common_spaces;
+            if (gapIndex < extra_spaces) spacesToAdd++;
 
             for (unsigned j = 0; j < spacesToAdd; j++) {
                 newStr[newPos++] = ' ';
@@ -108,13 +106,11 @@ void s_format(str& s, unsigned target_len) {
     s.A[newPos] = '\0';
 }
 
-// ==================== ФУНКЦИИ ДЛЯ РАБОТЫ С ТЕКСТОМ ====================
-
 // Ввод всего текста из файла
-void t_inp(std::ifstream& fin, text& t) {
+void t_inp(std::ifstream& inp_file, text& t) {
     t.l = 0;
-    while (t.l < N && !fin.eof()) {
-        s_inp(fin, t.T[t.l]);
+    while (t.l < N && !(inp_file.eof())) {
+        s_inp(inp_file, t.T[t.l]);
         if (t.T[t.l].len > 0) {
             t.l++;
         }
@@ -129,62 +125,63 @@ void t_out(std::ofstream& fout, const text& t) {
     }
 }
 
-// Основная обработка: склеивание строк в строки заданной длины
-void t_process(text& t, unsigned target_len) {
+//////////////////////////
+void t_process(text& t, unsigned new_str_len) {
     text result;
     result.l = 0;
 
-    str current;
-    current.len = 0;
+    str string;
+    string.len = 0;
 
     for (unsigned i = 0; i < t.l; i++) {
-        // Пытаемся добавить очередную исходную строку
-        unsigned newLen = current.len;
+        unsigned newLen = string.len;
 
-        if (current.len > 0) {
-            newLen += 1;  // добавляем пробел-разделитель
+        if (string.len > 0) {
+            // добавляем пробел-разделитель
+            newLen += 1;
         }
-        newLen += t.T[i].len;  // добавляем длину новой строки
+        // добавляем длину новой строки
+        newLen += t.T[i].len;
 
-        if (newLen <= target_len) {
+        if (newLen <= new_str_len) {
             // Строка помещается - добавляем
-            if (current.len > 0) {
-                current.A[current.len] = ' ';
-                current.len++;
+            if (string.len > 0) {
+                string.A[string.len] = ' ';
+                string.len++;
             }
 
             // Копируем исходную строку
             for (unsigned j = 0; j < t.T[i].len; j++) {
-                current.A[current.len] = t.T[i].A[j];
-                current.len++;
+                string.A[string.len] = t.T[i].A[j];
+                string.len++;
             }
-            current.A[current.len] = '\0';
+            string.A[string.len] = '\0';
         }
         else {
             // Строка не помещается - завершаем текущую и начинаем новую
 
             // Форматируем текущую строку до нужной длины (добавляем пробелы)
-            if (current.len > 0) {
-                s_format(current, target_len);
+            if (string.len > 0) {
+                s_format(string, new_str_len);
                 // Сохраняем в результат
-                result.T[result.l] = current;
+                result.T[result.l] = string;
                 result.l++;
             }
 
             // Начинаем новую строку с текущей исходной строки
-            current.len = 0;
+            string.len = 0;
             for (unsigned j = 0; j < t.T[i].len; j++) {
-                current.A[current.len] = t.T[i].A[j];
-                current.len++;
+                string.A[string.len] = t.T[i].A[j];
+                string.len++;
             }
-            current.A[current.len] = '\0';
+            string.A[string.len] = '\0';
         }
     }
 
     // Добавляем последнюю строку, если она не пустая
-    if (current.len > 0) {
-        s_format(current, target_len);
-        result.T[result.l] = current;
+    if (string.len > 0) {
+        s_format(string, new_str_len);
+        result.T[result.l] = string;
         result.l++;
     }
 
@@ -193,7 +190,7 @@ void t_process(text& t, unsigned target_len) {
 }
 
 bool in_file_check() {
-    std::ifstream file(INPUT_FILE);
+    std::ifstream file(inp_file);
 
     //Существует ли файл?
     if (!file.is_open()) {
@@ -211,16 +208,16 @@ bool in_file_check() {
 
     //Есть ли в файле данные?
     file.seekg(0, std::ios::beg);
-    char firstChar;
-    bool hasContent = false;
-    while (file.get(firstChar)) {
-        if (firstChar != '\n' && firstChar != '\r' && firstChar != ' ') {
-            hasContent = true;
+    char first_char;
+    bool flag = false;
+    while (file.get(first_char)) {
+        if (first_char != '\n' && first_char != '\r' && first_char != ' ') {
+            flag = true;
             break;
         }
     }
 
-    if (!hasContent) {
+    if (!flag) {
         std::cout << "Ошибка: Входной файл не содержит значимых данных (только пробелы и пустые строки)" << std::endl;
         file.close();
         return true;
@@ -230,9 +227,8 @@ bool in_file_check() {
     return false;
 }
 
-// Проверка выходного файла (можно ли создать/перезаписать)
 bool out_file_check() {
-    std::ofstream file(OUTPUT_FILE);
+    std::ofstream file(out_file);
     if (!file.is_open()) {
         std::cout << "Ошибка открытия выходного файла";
         return true;
@@ -242,52 +238,37 @@ bool out_file_check() {
     return false;
 }
 
-// ==================== ГЛАВНАЯ ФУНКЦИЯ ====================
-
 int main() {
     setlocale(LC_ALL, "RU");
 
-    if (in_file_check()) {
+    if (in_file_check()) return 0;
+    if (out_file_check()) return 0;
+
+    // Ввод длины формируемой строки
+    unsigned new_str_len;
+    std::cout << "Введите длину формируемых строк (не более " << M << "): ";
+    std::cin >> new_str_len;
+
+    if (new_str_len > M) {
+        std::cout << "Ошибка: лина не может превышать " << M << "!";
         return 0;
     }
-    if (out_file_check()) {
+
+    if (new_str_len < 1) {
+        std::cout << "Ошибка: длина должна быть положительной!";
         return 0;
     }
-
-    // Запрашиваем целевую длину
-    unsigned target_len;
-    std::cout << "Введите желаемую длину строк (не более " << M << "): ";
-    std::cin >> target_len;
-
-    if (target_len > M) {
-        std::cout << "Длина не может превышать " << M << ". Установлено " << M << std::endl;
-        target_len = M;
-    }
-
-    if (target_len < 1) {
-        std::cout << "Длина должна быть положительной. Установлено 10" << std::endl;
-        target_len = 10;
-    }
-
-    std::cout << std::endl;
-
     // Открываем файлы
-    std::ifstream fin(INPUT_FILE);
-    std::ofstream fout(OUTPUT_FILE);
+    std::ifstream in(inp_file);
+    std::ofstream out(out_file);
 
     text A;
-    t_inp(fin, A);
+    t_inp(in, A);
+    std::cout << "Прочитано строк: " << A.l;
+    t_process(A, new_str_len);
+    t_out(out, A);
 
-    std::cout << "Прочитано строк: " << A.l << std::endl << std::endl;
-
-    // Обрабатываем
-    t_process(A, target_len);
-
-    // Выводим результат
-    fout << "Результат ( Длина строк = " << target_len << "):" << std::endl;
-    t_out(fout, A);
-
-    fin.close();
-    fout.close();
+    in.close();
+    out.close();
     return 0;
 }
