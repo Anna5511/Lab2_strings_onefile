@@ -118,10 +118,10 @@ void t_inp(std::ifstream& inp_file, text& t) {
 }
 
 // Вывод всего текста в файл
-void t_out(std::ofstream& fout, const text& t) {
+void t_out(std::ofstream& out_file, const text& t) {
     for (unsigned i = 0; i < t.l; i++) {
-        s_out(fout, t.T[i]);
-        fout << '\n';
+        s_out(out_file, t.T[i]);
+        out_file << '\n';
     }
 }
 
