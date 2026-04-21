@@ -21,6 +21,11 @@ struct text {
     str T[N];
 };
 
+struct new_text {
+    unsigned l;
+    str T[N];
+};
+
 // Ввод одной строки из файла
 void s_inp(std::ifstream& inp_file, str& s) {
     s.len = 0;
@@ -264,7 +269,12 @@ int main() {
 
     text A;
     t_inp(in, A);
-    std::cout << "Прочитано строк: " << A.l;
+    std::cout << "Прочитано строк: " << A.l << std::endl;
+    out << "Исходные строки (длина: " << new_str_len << "):" << std::endl;
+
+    t_out(out, A);
+    out << std::endl;
+
     t_process(A, new_str_len);
     t_out(out, A);
 
